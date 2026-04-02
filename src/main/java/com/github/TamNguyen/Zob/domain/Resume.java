@@ -3,9 +3,8 @@ package com.github.TamNguyen.Zob.domain;
 import java.time.Instant;
 
 import com.github.TamNguyen.Zob.util.SecurityUtil;
-import com.github.TamNguyen.Zob.util.constant.GenderEnum;
+import com.github.TamNguyen.Zob.util.constant.ResumeStateEnum;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -22,48 +21,36 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users")
+@Table(name = "resumes")
 @Getter
 @Setter
-public class User {
+public class Resume {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
-    @NotBlank(message = "User name is required")
-    private String name;
-
-    @NotBlank(message = "Email is required")
+    @NotBlank(message = "email không được để trống")
     private String email;
 
-    @NotBlank(message = "Password is required")
-    private String password;
-
-    private int age;
+    @NotBlank(message = "url không được để trống (upload cv chưa thành công)")
+    private String url;
 
     @Enumerated(EnumType.STRING)
-    private GenderEnum gender;
-
-    private String address;
-
-    @Column(columnDefinition = "MEDIUMTEXT")
-    private String refreshToken;
+    private ResumeStateEnum status;
 
     private Instant createdAt;
-
     private Instant updatedAt;
 
     private String createdBy;
-
     private String updatedBy;
 
     @ManyToOne
-    @JoinColumn(name = "company_id")
-    private Company company;
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @ManyToOne
-    @JoinColumn(name = "role_id")
-    private Role role;
+    @JoinColumn(name = "job_id")
+    private Job job;
 
     @PrePersist
     public void handleBeforeCreate() {
@@ -82,4 +69,5 @@ public class User {
 
         this.updatedAt = Instant.now();
     }
+
 }

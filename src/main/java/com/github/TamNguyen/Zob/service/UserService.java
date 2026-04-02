@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.github.TamNguyen.Zob.domain.Company;
+import com.github.TamNguyen.Zob.domain.Role;
 import com.github.TamNguyen.Zob.domain.User;
 import com.github.TamNguyen.Zob.domain.response.ResponseCreateUserDTO;
 import com.github.TamNguyen.Zob.domain.response.ResponseUpdateUserDTO;
@@ -19,9 +21,13 @@ import com.github.TamNguyen.Zob.repository.UserRepository;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final CompanyService companyService;
+    private final RoleService roleService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, CompanyService companyService, RoleService roleService) {
         this.userRepository = userRepository;
+        this.companyService = companyService;
+        this.roleService = roleService;
     }
 
     public ResultPaginationDTO fetchAllUser(Specification<User> spec, Pageable pageable) {
@@ -56,23 +62,43 @@ public class UserService {
     }
 
     public User handleCreateUser(User user) {
-        return userRepository.save(user);
+        // check company
+        if (user.getCompany() != null) {
+            Optional<Company> companyOptional = this.companyService.findById(user.getCompany().getId());
+            user.setCompany(companyOptional.isPresent() ? companyOptional.get() : null);
+        }
+
+        return this.userRepository.save(user);
     }
 
     public void handleDeleteUser(Long id) {
         userRepository.deleteById(id);
     }
 
-    public User handleUpdateUser(User user) {
-        User findUser = this.findUserById(user.getId());
-        if (findUser != null) {
-            findUser.setAddress(user.getAddress());
-            findUser.setGender(user.getGender());
-            findUser.setAge(user.getAge());
-            findUser.setName(user.getName());
-            return userRepository.save(findUser);
+    public User handleUpdateUser(User reqUser) {
+        User currentUser = this.findUserById(reqUser.getId());
+        if (currentUser != null) {
+            currentUser.setAddress(reqUser.getAddress());
+            currentUser.setGender(reqUser.getGender());
+            currentUser.setAge(reqUser.getAge());
+            currentUser.setName(reqUser.getName());
+
+            // check company
+            if (reqUser.getCompany() != null) {
+                Optional<Company> companyOptional = this.companyService.findById(reqUser.getCompany().getId());
+                currentUser.setCompany(companyOptional.isPresent() ? companyOptional.get() : null);
+            }
+
+            // check role
+            if (reqUser.getRole() != null) {
+                Role r = this.roleService.fetchById(reqUser.getRole().getId());
+                currentUser.setRole(r != null ? r : null);
+            }
+
+            // update
+            currentUser = this.userRepository.save(currentUser);
         }
-        return null;
+        return currentUser;
     }
 
     public User findUserByEmail(String username) {
@@ -88,38 +114,60 @@ public class UserService {
     }
 
     public ResponseCreateUserDTO convertToResCreateUserDTO(User user) {
-        ResponseCreateUserDTO resCreateUserDTO = new ResponseCreateUserDTO();
-        resCreateUserDTO.setId(user.getId());
-        resCreateUserDTO.setName(user.getName());
-        resCreateUserDTO.setEmail(user.getEmail());
-        resCreateUserDTO.setGender(user.getGender());
-        resCreateUserDTO.setAddress(user.getAddress());
-        resCreateUserDTO.setAge(user.getAge());
-        resCreateUserDTO.setCreatedAt(user.getCreatedAt());
-        return resCreateUserDTO;
+        ResponseCreateUserDTO res = new ResponseCreateUserDTO();
+        ResponseCreateUserDTO.CompanyUser com = new ResponseCreateUserDTO.CompanyUser();
+
+        res.setId(user.getId());
+        res.setEmail(user.getEmail());
+        res.setName(user.getName());
+        res.setAge(user.getAge());
+        res.setCreatedAt(user.getCreatedAt());
+        res.setGender(user.getGender());
+        res.setAddress(user.getAddress());
+
+        if (user.getCompany() != null) {
+            com.setId(user.getCompany().getId());
+            com.setName(user.getCompany().getName());
+            res.setCompany(com);
+        }
+        return res;
     }
 
     public ResponseUserDTO convertToResUserDTO(User user) {
-        ResponseUserDTO resUserDTO = new ResponseUserDTO();
-        resUserDTO.setId(user.getId());
-        resUserDTO.setName(user.getName());
-        resUserDTO.setEmail(user.getEmail());
-        resUserDTO.setGender(user.getGender());
-        resUserDTO.setAddress(user.getAddress());
-        resUserDTO.setAge(user.getAge());
-        resUserDTO.setCreatedAt(user.getCreatedAt());
-        resUserDTO.setUpdatedAt(user.getUpdatedAt());
-        return resUserDTO;
+        ResponseUserDTO res = new ResponseUserDTO();
+        ResponseUserDTO.CompanyUser com = new ResponseUserDTO.CompanyUser();
+        ResponseUserDTO.RoleUser roleUser = new ResponseUserDTO.RoleUser();
+        if (user.getCompany() != null) {
+            com.setId(user.getCompany().getId());
+            com.setName(user.getCompany().getName());
+            res.setCompany(com);
+        }
+
+        if (user.getRole() != null) {
+            roleUser.setId(user.getRole().getId());
+            roleUser.setName(user.getRole().getName());
+            res.setRole(roleUser);
+        }
+
+        res.setId(user.getId());
+        res.setEmail(user.getEmail());
+        res.setName(user.getName());
+        res.setAge(user.getAge());
+        res.setUpdatedAt(user.getUpdatedAt());
+        res.setCreatedAt(user.getCreatedAt());
+        res.setGender(user.getGender());
+        res.setAddress(user.getAddress());
+        return res;
     }
 
     public ResponseUpdateUserDTO convertToResUpdateUserDTO(User user) {
         ResponseUpdateUserDTO res = new ResponseUpdateUserDTO();
-        // ResUpdateUserDTO.CompanyUser com = new ResUpdateUserDTO.CompanyUser();
-        // if (user.getCompany() != null) {
-        // com.setId(user.getCompany().getId());
-        // com.setName(user.getCompany().getName());
-        // res.setCompany(com);
-        // }
+        ResponseUpdateUserDTO.CompanyUser com = new ResponseUpdateUserDTO.CompanyUser();
+        if (user.getCompany() != null) {
+            com.setId(user.getCompany().getId());
+            com.setName(user.getCompany().getName());
+            res.setCompany(com);
+        }
 
         res.setId(user.getId());
         res.setName(user.getName());

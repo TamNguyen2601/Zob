@@ -1,4 +1,4 @@
-package com.github.TamNguyen.Zob.domain;
+package com.github.TamNguyen.Zob.domain.response;
 
 public class RestResponse<T> {
     private int statusCode;

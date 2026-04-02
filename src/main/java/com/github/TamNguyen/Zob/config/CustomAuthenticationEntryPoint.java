@@ -1,7 +1,7 @@
 package com.github.TamNguyen.Zob.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.TamNguyen.Zob.domain.RestResponse;
+import com.github.TamNguyen.Zob.domain.response.RestResponse;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,6 +1,7 @@
 package com.github.TamNguyen.Zob.domain.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.TamNguyen.Zob.domain.Role;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,18 +12,19 @@ import lombok.Setter;
 @Setter
 public class ResponseLoginDTO {
     @JsonProperty("access_token")
-
     private String accessToken;
-    private UserLogin userLogin;
+
+    private UserLogin user;
 
     @Getter
     @Setter
-    @NoArgsConstructor
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class UserLogin {
-        private String name;
+        private long id;
         private String email;
-        private Long id;
+        private String name;
+        private Role role;
     }
 
     @Getter
@@ -33,4 +35,13 @@ public class ResponseLoginDTO {
         private UserLogin user;
     }
 
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserInsideToken {
+        private long id;
+        private String email;
+        private String name;
+    }
 }

@@ -1,19 +1,17 @@
 package com.github.TamNguyen.Zob.domain;
 
 import java.time.Instant;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.TamNguyen.Zob.util.SecurityUtil;
-import com.github.TamNguyen.Zob.util.constant.GenderEnum;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -22,48 +20,29 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users")
+@Table(name = "skills")
 @Getter
 @Setter
-public class User {
+public class Skill {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
-    @NotBlank(message = "User name is required")
+    @NotBlank(message = "name không được để trống")
     private String name;
 
-    @NotBlank(message = "Email is required")
-    private String email;
-
-    @NotBlank(message = "Password is required")
-    private String password;
-
-    private int age;
-
-    @Enumerated(EnumType.STRING)
-    private GenderEnum gender;
-
-    private String address;
-
-    @Column(columnDefinition = "MEDIUMTEXT")
-    private String refreshToken;
-
     private Instant createdAt;
-
     private Instant updatedAt;
-
     private String createdBy;
-
     private String updatedBy;
 
-    @ManyToOne
-    @JoinColumn(name = "company_id")
-    private Company company;
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "skills")
+    @JsonIgnore
+    private List<Job> jobs;
 
-    @ManyToOne
-    @JoinColumn(name = "role_id")
-    private Role role;
+    // @ManyToMany(fetch = FetchType.LAZY, mappedBy = "skills")
+    // @JsonIgnore
+    // private List<Subscriber> subscribers;
 
     @PrePersist
     public void handleBeforeCreate() {
