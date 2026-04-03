@@ -49,12 +49,6 @@ public class RoleController {
             throw new IdInvalidException("Role với id = " + r.getId() + " không tồn tại");
         }
 
-        // check name
-        // if (this.roleService.existByName(r.getName())) {
-        // throw new IdInvalidException("Role với name = " + r.getName() + " đã tồn
-        // tại");
-        // }
-
         return ResponseEntity.ok().body(this.roleService.update(r));
     }
 
@@ -83,7 +77,7 @@ public class RoleController {
 
         Role role = this.roleService.fetchById(id);
         if (role == null) {
-            throw new IdInvalidException("Resume với id = " + id + " không tồn tại");
+            throw new IdInvalidException("Role với id = " + id + " không tồn tại");
         }
 
         return ResponseEntity.ok().body(role);

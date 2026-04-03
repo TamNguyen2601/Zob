@@ -15,10 +15,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.TamNguyen.Zob.domain.User;
+import com.github.TamNguyen.Zob.domain.request.ReqChangePasswordDTO;
+import com.github.TamNguyen.Zob.domain.request.ReqUpdateUserDTO;
+import com.github.TamNguyen.Zob.domain.response.ResponseChangePasswordDTO;
 import com.github.TamNguyen.Zob.domain.response.ResponseCreateUserDTO;
 import com.github.TamNguyen.Zob.domain.response.ResponseUpdateUserDTO;
 import com.github.TamNguyen.Zob.domain.response.ResultPaginationDTO;
 import com.github.TamNguyen.Zob.service.UserService;
+import com.github.TamNguyen.Zob.util.SecurityUtil;
 import com.github.TamNguyen.Zob.util.annotation.ApiMessage;
 import com.github.TamNguyen.Zob.util.error.IdInvalidException;
 import com.turkraft.springfilter.boot.Filter;
@@ -69,7 +73,8 @@ public class UserController {
     }
 
     @PutMapping("/users")
-    public ResponseEntity<ResponseUpdateUserDTO> updateUser(@Valid @RequestBody User user) throws IdInvalidException {
+    public ResponseEntity<ResponseUpdateUserDTO> updateUser(@Valid @RequestBody ReqUpdateUserDTO user)
+            throws IdInvalidException {
         User update = this.userService.handleUpdateUser(user);
         if (update == null) {
             throw new IdInvalidException("id khong ton tai");
@@ -78,14 +83,37 @@ public class UserController {
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<String> deleteUserById(@PathVariable("id") Long id) throws IdInvalidException {
+    @ApiMessage("Delete user by id")
+    public ResponseEntity<Void> deleteUserById(@PathVariable("id") Long id) throws IdInvalidException {
         User findUser = this.userService.findUserById(id);
         if (findUser == null) {
             throw new IdInvalidException("id khong ton tai");
         }
         this.userService.handleDeleteUser(id);
-        return ResponseEntity.ok(null);
-        // return ResponseEntity.status(HttpStatus.OK).body("delete user complete");
+        return ResponseEntity.ok().body(null);
 
+    }
+
+    @PostMapping("/auth/change-password")
+    @ApiMessage("Change password for current user")
+    public ResponseEntity<ResponseChangePasswordDTO> changePassword(
+            @Valid @RequestBody ReqChangePasswordDTO changePasswordDTO) throws IdInvalidException {
+        // Get current user from security context
+        String currentUserEmail = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new IdInvalidException("Unauthorized"));
+
+        User currentUser = this.userService.handleGetUserByUsername(currentUserEmail);
+        if (currentUser == null) {
+            throw new IdInvalidException("User not found");
+        }
+
+        // Change password
+        try {
+            User updatedUser = this.userService.handleChangePassword(currentUser, changePasswordDTO);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(this.userService.convertToResChangePasswordDTO(updatedUser));
+        } catch (IllegalArgumentException e) {
+            throw new IdInvalidException(e.getMessage());
+        }
     }
 }

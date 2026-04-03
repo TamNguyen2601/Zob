@@ -28,6 +28,8 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private static final String SKILL_PATH = "/api/v1/skills";
     private static final String SKILL_DETAIL_PATH = "/api/v1/skills/{id}";
     private static final String FILE_PATH = "/api/v1/files";
+    private static final String RESUME_PATH = "/api/v1/resumes";
+    private static final String RESUME_BY_USER_PATH = "/api/v1/resumes/by-user";
 
     @Autowired
     UserService userService;
@@ -40,7 +42,6 @@ public class PermissionInterceptor implements HandlerInterceptor {
             throws Exception {
 
         String path = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
-        String requestURI = request.getRequestURI();
         String httpMethod = request.getMethod();
 
         if (isPublicReadRequest(path, httpMethod)) {
@@ -59,6 +60,10 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
         User user = this.userService.handleGetUserByUsername(currentUserLogin.get());
         if (user != null) {
+            if (isResumeRequestAllowedForAuthenticatedUser(path, httpMethod)) {
+                return true;
+            }
+
             Role role = user.getRole();
             if (role != null) {
                 List<Permission> permissions = role.getPermissions();
@@ -92,5 +97,10 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
     private boolean isFileRequest(String path) {
         return FILE_PATH.equals(path);
+    }
+
+    private boolean isResumeRequestAllowedForAuthenticatedUser(String path, String httpMethod) {
+        return (RESUME_PATH.equals(path) && "POST".equalsIgnoreCase(httpMethod))
+                || (RESUME_BY_USER_PATH.equals(path) && "POST".equalsIgnoreCase(httpMethod));
     }
 }

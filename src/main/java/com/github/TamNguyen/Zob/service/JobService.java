@@ -1,5 +1,6 @@
 package com.github.TamNguyen.Zob.service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,8 +35,26 @@ public class JobService {
         this.companyRepository = companyRepository;
     }
 
+    private Job syncExpiredJobStatus(Job job) {
+        if (job == null) {
+            return null;
+        }
+
+        if (job.isActive() && job.getEndDate() != null && job.getEndDate().isBefore(Instant.now())) {
+            job.setActive(false);
+            job = this.jobRepository.save(job);
+        }
+
+        return job;
+    }
+
     public Optional<Job> fetchJobById(long id) {
-        return this.jobRepository.findById(id);
+        Optional<Job> jobOptional = this.jobRepository.findById(id);
+        if (jobOptional.isPresent()) {
+            Job syncedJob = this.syncExpiredJobStatus(jobOptional.get());
+            return Optional.ofNullable(syncedJob);
+        }
+        return jobOptional;
     }
 
     public ResCreateJobDTO create(Job j) {
@@ -59,6 +78,7 @@ public class JobService {
 
         // create job
         Job currentJob = this.jobRepository.save(j);
+        currentJob = this.syncExpiredJobStatus(currentJob);
 
         // convert response
         ResCreateJobDTO dto = new ResCreateJobDTO();
@@ -116,6 +136,7 @@ public class JobService {
 
         // update job
         Job currentJob = this.jobRepository.save(jobInDB);
+        currentJob = this.syncExpiredJobStatus(currentJob);
 
         // convert response
         ResUpdateJobDTO dto = new ResUpdateJobDTO();
@@ -147,6 +168,8 @@ public class JobService {
 
     public ResultPaginationDTO fetchAll(Specification<Job> spec, Pageable pageable) {
         Page<Job> pageUser = this.jobRepository.findAll(spec, pageable);
+
+        pageUser.getContent().forEach(this::syncExpiredJobStatus);
 
         ResultPaginationDTO rs = new ResultPaginationDTO();
         ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();

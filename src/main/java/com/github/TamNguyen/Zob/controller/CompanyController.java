@@ -42,16 +42,19 @@ public class CompanyController {
     }
 
     @PostMapping("/companies")
+    @ApiMessage("Create company")
     public ResponseEntity<Company> createCompany(@Valid @RequestBody Company company) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.companyService.handleCreateCompany(company));
     }
 
     @PutMapping("/companies")
+    @ApiMessage("Update company")
     public ResponseEntity<Company> updateCompany(@Valid @RequestBody Company company) {
         return ResponseEntity.ok(this.companyService.handleUpdateCompany(company));
     }
 
     @DeleteMapping("/companies/{id}")
+    @ApiMessage("Delete company by id")
     public ResponseEntity<Void> deleteCompany(@PathVariable("id") Long id) {
         this.companyService.handleDeleteCompany(id);
         return ResponseEntity.ok().body(null);

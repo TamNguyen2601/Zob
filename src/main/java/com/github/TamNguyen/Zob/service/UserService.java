@@ -7,15 +7,22 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.github.TamNguyen.Zob.domain.Company;
 import com.github.TamNguyen.Zob.domain.Role;
 import com.github.TamNguyen.Zob.domain.User;
+import com.github.TamNguyen.Zob.domain.request.ReqChangePasswordDTO;
+import com.github.TamNguyen.Zob.domain.request.ReqUpdateUserDTO;
+import com.github.TamNguyen.Zob.domain.response.ResponseChangePasswordDTO;
 import com.github.TamNguyen.Zob.domain.response.ResponseCreateUserDTO;
 import com.github.TamNguyen.Zob.domain.response.ResponseUpdateUserDTO;
 import com.github.TamNguyen.Zob.domain.response.ResponseUserDTO;
 import com.github.TamNguyen.Zob.domain.response.ResultPaginationDTO;
+import com.github.TamNguyen.Zob.domain.Resume;
+import com.github.TamNguyen.Zob.repository.ResumeRepository;
 import com.github.TamNguyen.Zob.repository.UserRepository;
 
 @Service
@@ -23,11 +30,16 @@ public class UserService {
     private final UserRepository userRepository;
     private final CompanyService companyService;
     private final RoleService roleService;
+    private final ResumeRepository resumeRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, CompanyService companyService, RoleService roleService) {
+    public UserService(UserRepository userRepository, CompanyService companyService, RoleService roleService,
+            ResumeRepository resumeRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.companyService = companyService;
         this.roleService = roleService;
+        this.resumeRepository = resumeRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public ResultPaginationDTO fetchAllUser(Specification<User> spec, Pageable pageable) {
@@ -71,26 +83,36 @@ public class UserService {
         return this.userRepository.save(user);
     }
 
+    @Transactional
     public void handleDeleteUser(Long id) {
+        User currentUser = this.findUserById(id);
+        if (currentUser != null) {
+            List<Resume> resumes = this.resumeRepository.findByUser(currentUser);
+            if (resumes != null && !resumes.isEmpty()) {
+                this.resumeRepository.deleteAll(resumes);
+            }
+        }
         userRepository.deleteById(id);
     }
 
-    public User handleUpdateUser(User reqUser) {
+    public User handleUpdateUser(ReqUpdateUserDTO reqUser) {
         User currentUser = this.findUserById(reqUser.getId());
         if (currentUser != null) {
             currentUser.setAddress(reqUser.getAddress());
             currentUser.setGender(reqUser.getGender());
-            currentUser.setAge(reqUser.getAge());
+            if (reqUser.getAge() != null) {
+                currentUser.setAge(reqUser.getAge());
+            }
             currentUser.setName(reqUser.getName());
 
             // check company
-            if (reqUser.getCompany() != null) {
+            if (reqUser.getCompany() != null && reqUser.getCompany().getId() != null) {
                 Optional<Company> companyOptional = this.companyService.findById(reqUser.getCompany().getId());
                 currentUser.setCompany(companyOptional.isPresent() ? companyOptional.get() : null);
             }
 
             // check role
-            if (reqUser.getRole() != null) {
+            if (reqUser.getRole() != null && reqUser.getRole().getId() != null) {
                 Role r = this.roleService.fetchById(reqUser.getRole().getId());
                 currentUser.setRole(r != null ? r : null);
             }
@@ -188,6 +210,48 @@ public class UserService {
 
     public User getUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
+    }
+
+    /**
+     * Change password for the current user
+     * 
+     * @param user              The current user to change password
+     * @param changePasswordDTO The DTO containing old password and new password
+     * @return The updated user with new password
+     * @throws IllegalArgumentException if old password is invalid or new passwords
+     *                                  don't match
+     */
+    public User handleChangePassword(User user, ReqChangePasswordDTO changePasswordDTO) {
+        // Verify old password
+        if (!this.passwordEncoder.matches(changePasswordDTO.getOldPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Old password is incorrect");
+        }
+
+        // Verify new password and confirmation match
+        if (!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getNewPasswordConfirm())) {
+            throw new IllegalArgumentException("New password and confirmation password do not match");
+        }
+
+        // Verify new password is different from old password
+        if (changePasswordDTO.getOldPassword().equals(changePasswordDTO.getNewPassword())) {
+            throw new IllegalArgumentException("New password must be different from old password");
+        }
+
+        // Encode and set new password
+        String encodedPassword = this.passwordEncoder.encode(changePasswordDTO.getNewPassword());
+        user.setPassword(encodedPassword);
+
+        // Save updated user
+        return this.userRepository.save(user);
+    }
+
+    public ResponseChangePasswordDTO convertToResChangePasswordDTO(User user) {
+        ResponseChangePasswordDTO res = new ResponseChangePasswordDTO();
+        res.setId(user.getId());
+        res.setEmail(user.getEmail());
+        res.setName(user.getName());
+        res.setUpdatedAt(user.getUpdatedAt());
+        return res;
     }
 
 }

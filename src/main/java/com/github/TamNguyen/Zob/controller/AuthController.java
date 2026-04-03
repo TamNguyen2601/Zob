@@ -108,16 +108,19 @@ public class AuthController {
                 : "";
 
         User currentUserDB = this.userService.handleGetUserByUsername(email);
-        ResponseLoginDTO.UserLogin userLogin = new ResponseLoginDTO.UserLogin();
+        ResponseLoginDTO.UserAccount userAccount = new ResponseLoginDTO.UserAccount();
         ResponseLoginDTO.UserGetAccount userGetAccount = new ResponseLoginDTO.UserGetAccount();
 
         if (currentUserDB != null) {
-            userLogin.setId(currentUserDB.getId());
-            userLogin.setEmail(currentUserDB.getEmail());
-            userLogin.setName(currentUserDB.getName());
-            userLogin.setRole(currentUserDB.getRole());
+            userAccount.setId(currentUserDB.getId());
+            userAccount.setEmail(currentUserDB.getEmail());
+            userAccount.setName(currentUserDB.getName());
+            userAccount.setAge(currentUserDB.getAge());
+            userAccount.setGender(currentUserDB.getGender());
+            userAccount.setAddress(currentUserDB.getAddress());
+            userAccount.setRole(currentUserDB.getRole());
 
-            userGetAccount.setUser(userLogin);
+            userGetAccount.setUser(userAccount);
         }
 
         return ResponseEntity.ok().body(userGetAccount);
@@ -214,7 +217,7 @@ public class AuthController {
 
         String hashPassword = this.passwordEncoder.encode(postManUser.getPassword());
         postManUser.setPassword(hashPassword);
-        User ericUser = this.userService.handleCreateUser(postManUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(ericUser));
+        User User = this.userService.handleCreateUser(postManUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(User));
     }
 }
