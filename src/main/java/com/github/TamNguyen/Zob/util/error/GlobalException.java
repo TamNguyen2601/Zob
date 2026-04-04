@@ -43,6 +43,39 @@ public class GlobalException {
     }
 
     @ExceptionHandler(value = {
+            ValidationErrorException.class,
+    })
+    public ResponseEntity<RestResponse<Object>> handleValidationException(Exception ex) {
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        res.setMessage(ex.getMessage());
+        res.setError("Validation Error");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    }
+
+    @ExceptionHandler(value = {
+            NotFoundException.class,
+    })
+    public ResponseEntity<RestResponse<Object>> handleDomainNotFoundException(Exception ex) {
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatusCode(HttpStatus.NOT_FOUND.value());
+        res.setMessage(ex.getMessage());
+        res.setError("Not Found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(res);
+    }
+
+    @ExceptionHandler(value = {
+            ConflictException.class,
+    })
+    public ResponseEntity<RestResponse<Object>> handleConflictException(Exception ex) {
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatusCode(HttpStatus.CONFLICT.value());
+        res.setMessage(ex.getMessage());
+        res.setError("Conflict");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(res);
+    }
+
+    @ExceptionHandler(value = {
             NoResourceFoundException.class,
     })
     public ResponseEntity<RestResponse<Object>> handleNotFoundException(Exception ex) {

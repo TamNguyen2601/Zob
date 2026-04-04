@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -21,7 +20,6 @@ import com.github.TamNguyen.Zob.repository.JobRepository;
 import com.github.TamNguyen.Zob.repository.ResumeRepository;
 import com.github.TamNguyen.Zob.repository.UserRepository;
 import com.github.TamNguyen.Zob.util.SecurityUtil;
-import com.turkraft.springfilter.builder.FilterBuilder;
 import com.turkraft.springfilter.converter.FilterSpecification;
 import com.turkraft.springfilter.converter.FilterSpecificationConverter;
 import com.turkraft.springfilter.parser.FilterParser;
@@ -29,23 +27,21 @@ import com.turkraft.springfilter.parser.node.FilterNode;
 
 @Service
 public class ResumeService {
-    @Autowired
-    FilterBuilder fb;
-
-    @Autowired
-    private FilterParser filterParser;
-
-    @Autowired
-    private FilterSpecificationConverter filterSpecificationConverter;
+    private final FilterParser filterParser;
+    private final FilterSpecificationConverter filterSpecificationConverter;
 
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
     private final JobRepository jobRepository;
 
     public ResumeService(
+            FilterParser filterParser,
+            FilterSpecificationConverter filterSpecificationConverter,
             ResumeRepository resumeRepository,
             UserRepository userRepository,
             JobRepository jobRepository) {
+        this.filterParser = filterParser;
+        this.filterSpecificationConverter = filterSpecificationConverter;
         this.resumeRepository = resumeRepository;
         this.userRepository = userRepository;
         this.jobRepository = jobRepository;

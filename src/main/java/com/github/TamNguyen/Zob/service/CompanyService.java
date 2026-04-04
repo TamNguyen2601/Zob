@@ -13,6 +13,7 @@ import com.github.TamNguyen.Zob.domain.User;
 import com.github.TamNguyen.Zob.domain.response.ResultPaginationDTO;
 import com.github.TamNguyen.Zob.repository.CompanyRepository;
 import com.github.TamNguyen.Zob.repository.UserRepository;
+import com.github.TamNguyen.Zob.util.error.NotFoundException;
 
 @Service
 public class CompanyService {
@@ -45,16 +46,12 @@ public class CompanyService {
     }
 
     public Company handleUpdateCompany(Company company) {
-        Optional<Company> existingCompany = this.companyRepository.findById(company.getId());
-        if (existingCompany.isPresent()) {
-            Company updatedCompany = existingCompany.get();
-            updatedCompany.setName(company.getName());
-            updatedCompany.setDescription(company.getDescription());
-            updatedCompany.setAddress(company.getAddress());
-            updatedCompany.setLogo(company.getLogo());
-            return this.companyRepository.save(updatedCompany);
-        }
-        return null;
+        Company updatedCompany = this.findByIdOrThrow(company.getId());
+        updatedCompany.setName(company.getName());
+        updatedCompany.setDescription(company.getDescription());
+        updatedCompany.setAddress(company.getAddress());
+        updatedCompany.setLogo(company.getLogo());
+        return this.companyRepository.save(updatedCompany);
     }
 
     public void handleDeleteCompany(long id) {
@@ -71,5 +68,10 @@ public class CompanyService {
 
     public Optional<Company> findById(long id) {
         return this.companyRepository.findById(id);
+    }
+
+    public Company findByIdOrThrow(long id) {
+        return this.findById(id)
+                .orElseThrow(() -> new NotFoundException("Company id = " + id + " không tồn tại"));
     }
 }

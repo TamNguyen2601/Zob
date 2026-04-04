@@ -23,10 +23,11 @@ import com.github.TamNguyen.Zob.domain.response.resume.ResCreateResumeDTO;
 import com.github.TamNguyen.Zob.domain.response.resume.ResFetchResumeDTO;
 import com.github.TamNguyen.Zob.domain.response.resume.ResUpdateResumeDTO;
 import com.github.TamNguyen.Zob.service.ResumeService;
-import com.github.TamNguyen.Zob.service.UserService;
+import com.github.TamNguyen.Zob.service.user.UserQueryService;
 import com.github.TamNguyen.Zob.util.SecurityUtil;
 import com.github.TamNguyen.Zob.util.annotation.ApiMessage;
-import com.github.TamNguyen.Zob.util.error.IdInvalidException;
+import com.github.TamNguyen.Zob.util.error.NotFoundException;
+import com.github.TamNguyen.Zob.util.error.ValidationErrorException;
 import com.turkraft.springfilter.boot.Filter;
 import com.turkraft.springfilter.builder.FilterBuilder;
 import com.turkraft.springfilter.converter.FilterSpecificationConverter;
@@ -39,29 +40,29 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class ResumeController {
 
     private final ResumeService resumeService;
-    private final UserService userService;
+    private final UserQueryService userQueryService;
 
     private final FilterBuilder filterBuilder;
     private final FilterSpecificationConverter filterSpecificationConverter;
 
     public ResumeController(
             ResumeService resumeService,
-            UserService userService,
+            UserQueryService userQueryService,
             FilterBuilder filterBuilder,
             FilterSpecificationConverter filterSpecificationConverter) {
         this.resumeService = resumeService;
-        this.userService = userService;
+        this.userQueryService = userQueryService;
         this.filterBuilder = filterBuilder;
         this.filterSpecificationConverter = filterSpecificationConverter;
     }
 
     @PostMapping("/resumes")
     @ApiMessage("Create a resume")
-    public ResponseEntity<ResCreateResumeDTO> create(@Valid @RequestBody Resume resume) throws IdInvalidException {
+    public ResponseEntity<ResCreateResumeDTO> create(@Valid @RequestBody Resume resume) {
         // check id exists
         boolean isIdExist = this.resumeService.checkResumeExistByUserAndJob(resume);
         if (!isIdExist) {
-            throw new IdInvalidException("User id/Job id không tồn tại");
+            throw new ValidationErrorException("User id/Job id không tồn tại");
         }
 
         // create new resume
@@ -70,11 +71,11 @@ public class ResumeController {
 
     @PutMapping("/resumes")
     @ApiMessage("Update a resume")
-    public ResponseEntity<ResUpdateResumeDTO> update(@RequestBody Resume resume) throws IdInvalidException {
+    public ResponseEntity<ResUpdateResumeDTO> update(@RequestBody Resume resume) {
         // check id exist
         Optional<Resume> reqResumeOptional = this.resumeService.fetchById(resume.getId());
         if (reqResumeOptional.isEmpty()) {
-            throw new IdInvalidException("Resume với id = " + resume.getId() + " không tồn tại");
+            throw new NotFoundException("Resume với id = " + resume.getId() + " không tồn tại");
         }
 
         Resume reqResume = reqResumeOptional.get();
@@ -85,10 +86,10 @@ public class ResumeController {
 
     @DeleteMapping("/resumes/{id}")
     @ApiMessage("Delete a resume by id")
-    public ResponseEntity<Void> delete(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<Void> delete(@PathVariable("id") long id) {
         Optional<Resume> reqResumeOptional = this.resumeService.fetchById(id);
         if (reqResumeOptional.isEmpty()) {
-            throw new IdInvalidException("Resume với id = " + id + " không tồn tại");
+            throw new NotFoundException("Resume với id = " + id + " không tồn tại");
         }
 
         this.resumeService.delete(id);
@@ -97,10 +98,10 @@ public class ResumeController {
 
     @GetMapping("/resumes/{id}")
     @ApiMessage("Fetch a resume by id")
-    public ResponseEntity<ResFetchResumeDTO> fetchById(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResFetchResumeDTO> fetchById(@PathVariable("id") long id) {
         Optional<Resume> reqResumeOptional = this.resumeService.fetchById(id);
         if (reqResumeOptional.isEmpty()) {
-            throw new IdInvalidException("Resume với id = " + id + " không tồn tại");
+            throw new NotFoundException("Resume với id = " + id + " không tồn tại");
         }
 
         return ResponseEntity.ok().body(this.resumeService.getResume(reqResumeOptional.get()));
@@ -116,8 +117,9 @@ public class ResumeController {
         String email = SecurityUtil.getCurrentUserLogin().isPresent() == true
                 ? SecurityUtil.getCurrentUserLogin().get()
                 : "";
-        User currentUser = this.userService.handleGetUserByUsername(email);
-        if (currentUser != null) {
+        Optional<User> currentUserOptional = this.userQueryService.findByEmail(email);
+        if (currentUserOptional.isPresent()) {
+            User currentUser = currentUserOptional.get();
             Company userCompany = currentUser.getCompany();
             if (userCompany != null) {
                 List<Job> companyJobs = userCompany.getJobs();

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import com.github.TamNguyen.Zob.domain.Skill;
 import com.github.TamNguyen.Zob.domain.response.ResultPaginationDTO;
 import com.github.TamNguyen.Zob.repository.SkillRepository;
+import com.github.TamNguyen.Zob.util.error.ConflictException;
+import com.github.TamNguyen.Zob.util.error.NotFoundException;
 
 @Service
 public class SkillService {
@@ -23,14 +25,19 @@ public class SkillService {
         return this.skillRepository.existsByName(name);
     }
 
-    public Skill fetchSkillById(long id) {
-        Optional<Skill> skillOptional = this.skillRepository.findById(id);
-        if (skillOptional.isPresent())
-            return skillOptional.get();
-        return null;
+    public Optional<Skill> fetchSkillById(long id) {
+        return this.skillRepository.findById(id);
+    }
+
+    public Skill fetchSkillByIdOrThrow(long id) {
+        return this.fetchSkillById(id)
+                .orElseThrow(() -> new NotFoundException("Skill id = " + id + " không tồn tại"));
     }
 
     public Skill createSkill(Skill s) {
+        if (s.getName() != null && this.isNameExist(s.getName())) {
+            throw new ConflictException("Skill name = " + s.getName() + " đã tồn tại");
+        }
         return this.skillRepository.save(s);
     }
 
@@ -40,8 +47,7 @@ public class SkillService {
 
     public void deleteSkill(long id) {
         // delete job (inside job_skill table)
-        Optional<Skill> skillOptional = this.skillRepository.findById(id);
-        Skill currentSkill = skillOptional.get();
+        Skill currentSkill = this.fetchSkillByIdOrThrow(id);
         currentSkill.getJobs().forEach(job -> job.getSkills().remove(currentSkill));
 
         // delete subscriber (inside subscriber_skill table)

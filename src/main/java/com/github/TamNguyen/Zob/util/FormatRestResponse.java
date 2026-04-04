@@ -2,6 +2,7 @@ package com.github.TamNguyen.Zob.util;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.Resource;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -18,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class FormatRestResponse implements ResponseBodyAdvice<Object> {
 
     @Override
-    public boolean supports(MethodParameter returnType, Class converterType) {
+    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
         return true;
     }
 
@@ -27,7 +28,7 @@ public class FormatRestResponse implements ResponseBodyAdvice<Object> {
             Object body,
             MethodParameter returnType,
             MediaType selectedContentType,
-            Class selectedConverterType,
+            Class<? extends HttpMessageConverter<?>> selectedConverterType,
             ServerHttpRequest request,
             ServerHttpResponse response) {
         HttpServletResponse servletResponse = ((ServletServerHttpResponse) response).getServletResponse();

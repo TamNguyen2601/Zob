@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import com.github.TamNguyen.Zob.domain.Permission;
 import com.github.TamNguyen.Zob.domain.response.ResultPaginationDTO;
 import com.github.TamNguyen.Zob.repository.PermissionRepository;
+import com.github.TamNguyen.Zob.util.error.ConflictException;
+import com.github.TamNguyen.Zob.util.error.NotFoundException;
 
 @Service
 public class PermissionService {
@@ -26,36 +28,40 @@ public class PermissionService {
                 p.getMethod());
     }
 
-    public Permission fetchById(long id) {
-        Optional<Permission> permissionOptional = this.permissionRepository.findById(id);
-        if (permissionOptional.isPresent())
-            return permissionOptional.get();
-        return null;
+    public Optional<Permission> fetchById(long id) {
+        return this.permissionRepository.findById(id);
+    }
+
+    public Permission fetchByIdOrThrow(long id) {
+        return this.fetchById(id)
+                .orElseThrow(() -> new NotFoundException("Permission với id = " + id + " không tồn tại."));
     }
 
     public Permission create(Permission p) {
+        if (this.isPermissionExist(p)) {
+            throw new ConflictException("Permission đã tồn tại.");
+        }
         return this.permissionRepository.save(p);
     }
 
     public Permission update(Permission p) {
-        Permission permissionDB = this.fetchById(p.getId());
-        if (permissionDB != null) {
-            permissionDB.setName(p.getName());
-            permissionDB.setApiPath(p.getApiPath());
-            permissionDB.setMethod(p.getMethod());
-            permissionDB.setModule(p.getModule());
+        Permission permissionDB = this.fetchByIdOrThrow(p.getId());
 
-            // update
-            permissionDB = this.permissionRepository.save(permissionDB);
-            return permissionDB;
+        if (this.isPermissionExist(p) && !this.isSameName(p)) {
+            throw new ConflictException("Permission đã tồn tại.");
         }
-        return null;
+
+        permissionDB.setName(p.getName());
+        permissionDB.setApiPath(p.getApiPath());
+        permissionDB.setMethod(p.getMethod());
+        permissionDB.setModule(p.getModule());
+
+        return this.permissionRepository.save(permissionDB);
     }
 
     public void delete(long id) {
         // delete permission_role
-        Optional<Permission> permissionOptional = this.permissionRepository.findById(id);
-        Permission currentPermission = permissionOptional.get();
+        Permission currentPermission = this.fetchByIdOrThrow(id);
         currentPermission.getRoles().forEach(role -> role.getPermissions().remove(currentPermission));
 
         // delete permission
@@ -79,11 +85,8 @@ public class PermissionService {
     }
 
     public boolean isSameName(Permission p) {
-        Permission permissionDB = this.fetchById(p.getId());
-        if (permissionDB != null) {
-            if (permissionDB.getName().equals(p.getName()))
-                return true;
-        }
-        return false;
+        return this.fetchById(p.getId())
+                .map(permissionDB -> permissionDB.getName().equals(p.getName()))
+                .orElse(false);
     }
 }

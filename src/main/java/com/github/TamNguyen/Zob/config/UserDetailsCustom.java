@@ -9,23 +9,21 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import com.github.TamNguyen.Zob.service.UserService;
+import com.github.TamNguyen.Zob.service.user.UserQueryService;
 
 @Component("userDetailService")
 public class UserDetailsCustom implements UserDetailsService {
 
-    private final UserService userService;
+    private final UserQueryService userQueryService;
 
-    public UserDetailsCustom(UserService userService) {
-        this.userService = userService;
+    public UserDetailsCustom(UserQueryService userQueryService) {
+        this.userQueryService = userQueryService;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        com.github.TamNguyen.Zob.domain.User user = userService.handleGetUserByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with email: " + username);
-        }
+        com.github.TamNguyen.Zob.domain.User user = userQueryService.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
         return new User(
                 user.getEmail(),
                 user.getPassword(),

@@ -13,6 +13,8 @@ import com.github.TamNguyen.Zob.domain.Role;
 import com.github.TamNguyen.Zob.domain.response.ResultPaginationDTO;
 import com.github.TamNguyen.Zob.repository.PermissionRepository;
 import com.github.TamNguyen.Zob.repository.RoleRepository;
+import com.github.TamNguyen.Zob.util.error.NotFoundException;
+import com.github.TamNguyen.Zob.util.error.ValidationErrorException;
 
 @Service
 public class RoleService {
@@ -39,21 +41,26 @@ public class RoleService {
                     .collect(Collectors.toList());
 
             List<Permission> dbPermissions = this.permissionRepository.findByIdIn(reqPermissions);
+            if (dbPermissions.size() != reqPermissions.size()) {
+                throw new ValidationErrorException("Some permissions are not found");
+            }
             r.setPermissions(dbPermissions);
         }
 
         return this.roleRepository.save(r);
     }
 
-    public Role fetchById(long id) {
-        Optional<Role> roleOptional = this.roleRepository.findById(id);
-        if (roleOptional.isPresent())
-            return roleOptional.get();
-        return null;
+    public Optional<Role> fetchById(long id) {
+        return this.roleRepository.findById(id);
+    }
+
+    public Role fetchByIdOrThrow(long id) {
+        return this.fetchById(id)
+                .orElseThrow(() -> new NotFoundException("Role với id = " + id + " không tồn tại"));
     }
 
     public Role update(Role r) {
-        Role roleDB = this.fetchById(r.getId());
+        Role roleDB = this.fetchByIdOrThrow(r.getId());
         // check permissions
         if (r.getPermissions() != null) {
             List<Long> reqPermissions = r.getPermissions()
@@ -61,6 +68,9 @@ public class RoleService {
                     .collect(Collectors.toList());
 
             List<Permission> dbPermissions = this.permissionRepository.findByIdIn(reqPermissions);
+            if (dbPermissions.size() != reqPermissions.size()) {
+                throw new ValidationErrorException("Some permissions are not found");
+            }
             r.setPermissions(dbPermissions);
         }
 
@@ -73,6 +83,7 @@ public class RoleService {
     }
 
     public void delete(long id) {
+        this.fetchByIdOrThrow(id);
         this.roleRepository.deleteById(id);
     }
 

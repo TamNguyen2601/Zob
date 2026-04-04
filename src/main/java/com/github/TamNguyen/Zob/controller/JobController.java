@@ -18,9 +18,9 @@ import com.github.TamNguyen.Zob.domain.Job;
 import com.github.TamNguyen.Zob.domain.response.ResultPaginationDTO;
 import com.github.TamNguyen.Zob.domain.response.job.ResCreateJobDTO;
 import com.github.TamNguyen.Zob.domain.response.job.ResUpdateJobDTO;
-import com.github.TamNguyen.Zob.service.JobService;
+import com.github.TamNguyen.Zob.service.job.JobApplicationService;
 import com.github.TamNguyen.Zob.util.annotation.ApiMessage;
-import com.github.TamNguyen.Zob.util.error.IdInvalidException;
+import com.github.TamNguyen.Zob.util.error.NotFoundException;
 import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
 
@@ -28,48 +28,48 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/v1")
 public class JobController {
 
-    private final JobService jobService;
+    private final JobApplicationService jobApplicationService;
 
-    public JobController(JobService jobService) {
-        this.jobService = jobService;
+    public JobController(JobApplicationService jobApplicationService) {
+        this.jobApplicationService = jobApplicationService;
     }
 
     @PostMapping("/jobs")
     @ApiMessage("Create a job")
     public ResponseEntity<ResCreateJobDTO> create(@Valid @RequestBody Job job) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(this.jobService.create(job));
+                .body(this.jobApplicationService.create(job));
     }
 
     @PutMapping("/jobs")
     @ApiMessage("Update a job")
-    public ResponseEntity<ResUpdateJobDTO> update(@Valid @RequestBody Job job) throws IdInvalidException {
-        Optional<Job> currentJob = this.jobService.fetchJobById(job.getId());
+    public ResponseEntity<ResUpdateJobDTO> update(@Valid @RequestBody Job job) {
+        Optional<Job> currentJob = this.jobApplicationService.fetchJobById(job.getId());
         if (!currentJob.isPresent()) {
-            throw new IdInvalidException("Job not found");
+            throw new NotFoundException("Job not found");
         }
 
         return ResponseEntity.ok()
-                .body(this.jobService.update(job, currentJob.get()));
+                .body(this.jobApplicationService.update(job, currentJob.get()));
     }
 
     @DeleteMapping("/jobs/{id}")
     @ApiMessage("Delete a job by id")
-    public ResponseEntity<Void> delete(@PathVariable("id") long id) throws IdInvalidException {
-        Optional<Job> currentJob = this.jobService.fetchJobById(id);
+    public ResponseEntity<Void> delete(@PathVariable("id") long id) {
+        Optional<Job> currentJob = this.jobApplicationService.fetchJobById(id);
         if (!currentJob.isPresent()) {
-            throw new IdInvalidException("Job not found");
+            throw new NotFoundException("Job not found");
         }
-        this.jobService.delete(id);
+        this.jobApplicationService.delete(id);
         return ResponseEntity.ok().body(null);
     }
 
     @GetMapping("/jobs/{id}")
     @ApiMessage("Get a job by id")
-    public ResponseEntity<Job> getJob(@PathVariable("id") long id) throws IdInvalidException {
-        Optional<Job> currentJob = this.jobService.fetchJobById(id);
+    public ResponseEntity<Job> getJob(@PathVariable("id") long id) {
+        Optional<Job> currentJob = this.jobApplicationService.fetchJobById(id);
         if (!currentJob.isPresent()) {
-            throw new IdInvalidException("Job not found");
+            throw new NotFoundException("Job not found");
         }
 
         return ResponseEntity.ok().body(currentJob.get());
@@ -81,6 +81,6 @@ public class JobController {
             @Filter Specification<Job> spec,
             Pageable pageable) {
 
-        return ResponseEntity.ok().body(this.jobService.fetchAll(spec, pageable));
+        return ResponseEntity.ok().body(this.jobApplicationService.fetchAll(spec, pageable));
     }
 }

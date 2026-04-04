@@ -17,7 +17,7 @@ import com.github.TamNguyen.Zob.domain.Skill;
 import com.github.TamNguyen.Zob.domain.response.ResultPaginationDTO;
 import com.github.TamNguyen.Zob.service.SkillService;
 import com.github.TamNguyen.Zob.util.annotation.ApiMessage;
-import com.github.TamNguyen.Zob.util.error.IdInvalidException;
+import com.github.TamNguyen.Zob.util.error.ConflictException;
 import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
 
@@ -33,26 +33,19 @@ public class SkillController {
 
     @PostMapping("/skills")
     @ApiMessage("Create a skill")
-    public ResponseEntity<Skill> create(@Valid @RequestBody Skill s) throws IdInvalidException {
-        // check name
-        if (s.getName() != null && this.skillService.isNameExist(s.getName())) {
-            throw new IdInvalidException("Skill name = " + s.getName() + " đã tồn tại");
-        }
+    public ResponseEntity<Skill> create(@Valid @RequestBody Skill s) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.skillService.createSkill(s));
     }
 
     @PutMapping("/skills")
     @ApiMessage("Update a skill")
-    public ResponseEntity<Skill> update(@Valid @RequestBody Skill s) throws IdInvalidException {
-        // check id
-        Skill currentSkill = this.skillService.fetchSkillById(s.getId());
-        if (currentSkill == null) {
-            throw new IdInvalidException("Skill id = " + s.getId() + " không tồn tại");
-        }
+    public ResponseEntity<Skill> update(@Valid @RequestBody Skill s) {
+        Skill currentSkill = this.skillService.fetchSkillByIdOrThrow(s.getId());
 
         // check name
-        if (s.getName() != null && this.skillService.isNameExist(s.getName())) {
-            throw new IdInvalidException("Skill name = " + s.getName() + " đã tồn tại");
+        if (s.getName() != null && !s.getName().equals(currentSkill.getName())
+                && this.skillService.isNameExist(s.getName())) {
+            throw new ConflictException("Skill name = " + s.getName() + " đã tồn tại");
         }
 
         currentSkill.setName(s.getName());
@@ -61,12 +54,7 @@ public class SkillController {
 
     @DeleteMapping("/skills/{id}")
     @ApiMessage("Delete a skill")
-    public ResponseEntity<Void> delete(@PathVariable("id") long id) throws IdInvalidException {
-        // check id
-        Skill currentSkill = this.skillService.fetchSkillById(id);
-        if (currentSkill == null) {
-            throw new IdInvalidException("Skill id = " + id + " không tồn tại");
-        }
+    public ResponseEntity<Void> delete(@PathVariable("id") long id) {
         this.skillService.deleteSkill(id);
         return ResponseEntity.ok().body(null);
     }

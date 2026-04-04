@@ -17,7 +17,7 @@ import com.github.TamNguyen.Zob.domain.Role;
 import com.github.TamNguyen.Zob.domain.response.ResultPaginationDTO;
 import com.github.TamNguyen.Zob.service.RoleService;
 import com.github.TamNguyen.Zob.util.annotation.ApiMessage;
-import com.github.TamNguyen.Zob.util.error.IdInvalidException;
+import com.github.TamNguyen.Zob.util.error.ConflictException;
 import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
 
@@ -33,32 +33,23 @@ public class RoleController {
 
     @PostMapping("/roles")
     @ApiMessage("Create a role")
-    public ResponseEntity<Role> create(@Valid @RequestBody Role r) throws IdInvalidException {
+    public ResponseEntity<Role> create(@Valid @RequestBody Role r) {
         // check name
         if (this.roleService.existByName(r.getName())) {
-            throw new IdInvalidException("Role với name = " + r.getName() + " đã tồn tại");
+            throw new ConflictException("Role với name = " + r.getName() + " đã tồn tại");
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(this.roleService.create(r));
     }
 
     @PutMapping("/roles")
     @ApiMessage("Update a role")
-    public ResponseEntity<Role> update(@Valid @RequestBody Role r) throws IdInvalidException {
-        // check id
-        if (this.roleService.fetchById(r.getId()) == null) {
-            throw new IdInvalidException("Role với id = " + r.getId() + " không tồn tại");
-        }
-
+    public ResponseEntity<Role> update(@Valid @RequestBody Role r) {
         return ResponseEntity.ok().body(this.roleService.update(r));
     }
 
     @DeleteMapping("/roles/{id}")
     @ApiMessage("Delete a role")
-    public ResponseEntity<Void> delete(@PathVariable("id") long id) throws IdInvalidException {
-        // check id
-        if (this.roleService.fetchById(id) == null) {
-            throw new IdInvalidException("Role với id = " + id + " không tồn tại");
-        }
+    public ResponseEntity<Void> delete(@PathVariable("id") long id) {
         this.roleService.delete(id);
         return ResponseEntity.ok().body(null);
     }
@@ -73,14 +64,8 @@ public class RoleController {
 
     @GetMapping("/roles/{id}")
     @ApiMessage("Fetch role by id")
-    public ResponseEntity<Role> getById(@PathVariable("id") long id) throws IdInvalidException {
-
-        Role role = this.roleService.fetchById(id);
-        if (role == null) {
-            throw new IdInvalidException("Role với id = " + id + " không tồn tại");
-        }
-
-        return ResponseEntity.ok().body(role);
+    public ResponseEntity<Role> getById(@PathVariable("id") long id) {
+        return ResponseEntity.ok().body(this.roleService.fetchByIdOrThrow(id));
     }
 
 }

@@ -3,7 +3,6 @@ package com.github.TamNguyen.Zob.config;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -12,7 +11,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import com.github.TamNguyen.Zob.domain.Permission;
 import com.github.TamNguyen.Zob.domain.Role;
 import com.github.TamNguyen.Zob.domain.User;
-import com.github.TamNguyen.Zob.service.UserService;
+import com.github.TamNguyen.Zob.service.user.UserQueryService;
 import com.github.TamNguyen.Zob.util.SecurityUtil;
 import com.github.TamNguyen.Zob.util.error.PermissionException;
 
@@ -31,8 +30,11 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private static final String RESUME_PATH = "/api/v1/resumes";
     private static final String RESUME_BY_USER_PATH = "/api/v1/resumes/by-user";
 
-    @Autowired
-    UserService userService;
+    private final UserQueryService userQueryService;
+
+    public PermissionInterceptor(UserQueryService userQueryService) {
+        this.userQueryService = userQueryService;
+    }
 
     @Override
     @Transactional
@@ -58,8 +60,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
             throw new PermissionException("Bạn không có quyền truy cập endpoint này.");
         }
 
-        User user = this.userService.handleGetUserByUsername(currentUserLogin.get());
-        if (user != null) {
+        Optional<User> userOptional = this.userQueryService.findByEmail(currentUserLogin.get());
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
             if (isResumeRequestAllowedForAuthenticatedUser(path, httpMethod)) {
                 return true;
             }
