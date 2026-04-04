@@ -22,7 +22,7 @@ public class UserDetailsCustom implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        com.github.TamNguyen.Zob.domain.User user = userService.findUserByEmail(username);
+        com.github.TamNguyen.Zob.domain.User user = userService.handleGetUserByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException("User not found with email: " + username);
         }

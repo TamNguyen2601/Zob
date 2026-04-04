@@ -123,10 +123,6 @@ public class UserService {
         return currentUser;
     }
 
-    public User findUserByEmail(String username) {
-        return userRepository.findByEmail(username);
-    }
-
     public User handleGetUserByUsername(String username) {
         return this.userRepository.findByEmail(username);
     }
