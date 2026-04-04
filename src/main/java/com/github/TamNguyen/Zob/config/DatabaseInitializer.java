@@ -102,16 +102,16 @@ public class DatabaseInitializer implements CommandLineRunner {
                         arr.add(new Permission("Get users with pagination", "/api/v1/users", "GET",
                                         "USERS"));
 
-                        arr.add(new Permission("Create a subscriber", "/api/v1/subscribers", "POST",
-                                        "SUBSCRIBERS"));
-                        arr.add(new Permission("Update a subscriber", "/api/v1/subscribers", "PUT",
-                                        "SUBSCRIBERS"));
-                        arr.add(new Permission("Delete a subscriber", "/api/v1/subscribers/{id}",
-                                        "DELETE", "SUBSCRIBERS"));
-                        arr.add(new Permission("Get a subscriber by id", "/api/v1/subscribers/{id}",
-                                        "GET", "SUBSCRIBERS"));
-                        arr.add(new Permission("Get subscribers with pagination",
-                                        "/api/v1/subscribers", "GET", "SUBSCRIBERS"));
+                        arr.add(new Permission("Create a skill", "/api/v1/skills", "POST",
+                                        "SKILLS"));
+                        arr.add(new Permission("Update a skill", "/api/v1/skills", "PUT",
+                                        "SKILLS"));
+                        arr.add(new Permission("Delete a skill", "/api/v1/skills/{id}",
+                                        "DELETE", "SKILLS"));
+                        arr.add(new Permission("Get a skill by id", "/api/v1/skills/{id}",
+                                        "GET", "SKILLS"));
+                        arr.add(new Permission("Get skills with pagination",
+                                        "/api/v1/skills", "GET", "SKILLS"));
 
                         arr.add(new Permission("Download a file", "/api/v1/files", "POST", "FILES"));
                         arr.add(new Permission("Upload a file", "/api/v1/files", "GET", "FILES"));
@@ -123,8 +123,8 @@ public class DatabaseInitializer implements CommandLineRunner {
                         List<Permission> allPermissions = this.permissionRepository.findAll();
 
                         Role adminRole = new Role();
-                        adminRole.setName("SUPER_ADMIN");
-                        adminRole.setDescription("Admin thì full permissions");
+                        adminRole.setName("admin");
+                        adminRole.setDescription("full permissions");
                         adminRole.setActive(true);
                         adminRole.setPermissions(allPermissions);
 
@@ -140,7 +140,7 @@ public class DatabaseInitializer implements CommandLineRunner {
                         adminUser.setName("admin");
                         adminUser.setPassword(this.passwordEncoder.encode("123456"));
 
-                        Role adminRole = this.roleRepository.findByName("SUPER_ADMIN");
+                        Role adminRole = this.roleRepository.findByName("admin");
                         if (adminRole != null) {
                                 adminUser.setRole(adminRole);
                         }

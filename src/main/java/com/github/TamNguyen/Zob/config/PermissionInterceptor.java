@@ -29,6 +29,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private static final String FILE_PATH = "/api/v1/files";
     private static final String RESUME_PATH = "/api/v1/resumes";
     private static final String RESUME_BY_USER_PATH = "/api/v1/resumes/by-user";
+    private static final String USER_SELF_PROFILE_PATH = "/api/v1/users/me";
 
     private final UserQueryService userQueryService;
 
@@ -66,9 +67,16 @@ public class PermissionInterceptor implements HandlerInterceptor {
             if (isResumeRequestAllowedForAuthenticatedUser(path, httpMethod)) {
                 return true;
             }
+            if (isSelfProfileUpdateAllowedForAuthenticatedUser(path, httpMethod)) {
+                return true;
+            }
 
             Role role = user.getRole();
             if (role != null) {
+                if (!role.isActive()) {
+                    throw new PermissionException("Bạn không có quyền truy cập endpoint này.");
+                }
+
                 List<Permission> permissions = role.getPermissions();
                 boolean isAllow = permissions != null
                         && permissions.stream().anyMatch(item -> item.getApiPath().equals(path)
@@ -105,5 +113,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private boolean isResumeRequestAllowedForAuthenticatedUser(String path, String httpMethod) {
         return (RESUME_PATH.equals(path) && "POST".equalsIgnoreCase(httpMethod))
                 || (RESUME_BY_USER_PATH.equals(path) && "POST".equalsIgnoreCase(httpMethod));
+    }
+
+    private boolean isSelfProfileUpdateAllowedForAuthenticatedUser(String path, String httpMethod) {
+        return USER_SELF_PROFILE_PATH.equals(path) && "PUT".equalsIgnoreCase(httpMethod);
     }
 }

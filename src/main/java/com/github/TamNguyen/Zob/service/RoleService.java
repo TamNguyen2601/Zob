@@ -2,6 +2,7 @@ package com.github.TamNguyen.Zob.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +35,10 @@ public class RoleService {
     }
 
     public Role create(Role r) {
+        if (!r.isActive()) {
+            r.setPermissions(Collections.emptyList());
+        }
+
         // check permissions
         if (r.getPermissions() != null) {
             List<Long> reqPermissions = r.getPermissions()
@@ -61,6 +66,11 @@ public class RoleService {
 
     public Role update(Role r) {
         Role roleDB = this.fetchByIdOrThrow(r.getId());
+
+        if (!r.isActive()) {
+            r.setPermissions(Collections.emptyList());
+        }
+
         // check permissions
         if (r.getPermissions() != null) {
             List<Long> reqPermissions = r.getPermissions()
