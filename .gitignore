@@ -39,5 +39,6 @@ out/
 .gradle/
 build/
 **/src/main/resources/application.properties
+docs/huong-dan-doc-du-an.md
 
 

@@ -11,9 +11,11 @@ import com.github.TamNguyen.Zob.domain.Company;
 import com.github.TamNguyen.Zob.domain.Resume;
 import com.github.TamNguyen.Zob.domain.Role;
 import com.github.TamNguyen.Zob.domain.User;
+import com.github.TamNguyen.Zob.domain.request.ReqUpdateMyProfileDTO;
 import com.github.TamNguyen.Zob.domain.request.ReqUpdateUserDTO;
 import com.github.TamNguyen.Zob.domain.response.ResponseCreateUserDTO;
 import com.github.TamNguyen.Zob.domain.response.ResponseUpdateUserDTO;
+import com.github.TamNguyen.Zob.util.SecurityUtil;
 import com.github.TamNguyen.Zob.repository.ResumeRepository;
 import com.github.TamNguyen.Zob.repository.UserRepository;
 import com.github.TamNguyen.Zob.service.CompanyService;
@@ -85,6 +87,28 @@ public class UserCommandServiceImpl implements UserCommandService {
         if (reqUser.getRole() != null && reqUser.getRole().getId() != null) {
             Role r = this.roleService.fetchById(reqUser.getRole().getId()).orElse(null);
             currentUser.setRole(r);
+        }
+
+        User updated = this.userRepository.save(currentUser);
+        return this.userMapper.toUpdateUserDTO(updated);
+    }
+
+    @Override
+    public ResponseUpdateUserDTO updateMyProfile(ReqUpdateMyProfileDTO reqUser) {
+        String currentUserEmail = SecurityUtil.getCurrentUserLogin().orElse("");
+        User currentUser = this.userQueryService.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        currentUser.setAddress(reqUser.getAddress());
+        currentUser.setGender(reqUser.getGender());
+        if (reqUser.getAge() != null) {
+            currentUser.setAge(reqUser.getAge());
+        }
+        currentUser.setName(reqUser.getName());
+
+        if (reqUser.getCompany() != null && reqUser.getCompany().getId() != null) {
+            Optional<Company> companyOptional = this.companyService.findById(reqUser.getCompany().getId());
+            currentUser.setCompany(companyOptional.orElse(null));
         }
 
         User updated = this.userRepository.save(currentUser);

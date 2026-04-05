@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.github.TamNguyen.Zob.domain.User;
 import com.github.TamNguyen.Zob.domain.request.ReqChangePasswordDTO;
+import com.github.TamNguyen.Zob.domain.request.ReqUpdateMyProfileDTO;
 import com.github.TamNguyen.Zob.domain.request.ReqUpdateUserDTO;
 import com.github.TamNguyen.Zob.domain.response.ResponseChangePasswordDTO;
 import com.github.TamNguyen.Zob.domain.response.ResponseCreateUserDTO;
@@ -23,6 +24,7 @@ import com.github.TamNguyen.Zob.domain.response.ResultPaginationDTO;
 import com.github.TamNguyen.Zob.service.user.UserAuthService;
 import com.github.TamNguyen.Zob.service.user.UserCommandService;
 import com.github.TamNguyen.Zob.service.user.UserQueryService;
+import com.github.TamNguyen.Zob.util.SecurityUtil;
 import com.github.TamNguyen.Zob.util.annotation.ApiMessage;
 import com.turkraft.springfilter.boot.Filter;
 
@@ -83,5 +85,22 @@ public class UserController {
             @Valid @RequestBody ReqChangePasswordDTO changePasswordDTO) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(this.userAuthService.changePasswordForCurrentUser(changePasswordDTO));
+    }
+
+    @GetMapping("/users/me")
+    @ApiMessage("Get current user's profile")
+    public ResponseEntity<User> getCurrentUserProfile() {
+        String email = SecurityUtil.getCurrentUserLogin().orElse("");
+        User currentUser = this.userQueryService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.status(HttpStatus.OK).body(currentUser);
+    }
+
+    @PutMapping("/users/me")
+    @ApiMessage("Update current user's profile")
+    public ResponseEntity<ResponseUpdateUserDTO> updateCurrentUserProfile(
+            @Valid @RequestBody ReqUpdateMyProfileDTO user) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(this.userCommandService.updateMyProfile(user));
     }
 }
