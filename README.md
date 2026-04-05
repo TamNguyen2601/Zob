@@ -1,139 +1,91 @@
-# Zob API 🚀
+Zob API
+Du an backend cho he thong tuyen dung, xay dung bang Spring Boot.
 
-> A Spring Boot backend for a recruitment/job portal platform.
+1) Cong nghe su dung
+Java 17
+Spring Boot 3.2.4
+Spring Web (REST API)
+Spring Data JPA
+Spring Security + OAuth2 Resource Server (JWT)
+Spring Validation
+Thymeleaf
+MySQL Connector/J
+Lombok
+SpringFilter JPA (filter + pagination)
+Gradle Kotlin DSL
+2) Cac API da xay dung
+Base URL: /api/v1
 
-## Tài liệu cho người mới
+Auth
 
-- [Hướng dẫn đọc dự án chi tiết](docs/huong-dan-doc-du-an.md)
+POST /auth/login
+GET /auth/account
+GET /auth/refresh
+POST /auth/logout
+POST /auth/register
+POST /auth/change-password
+User
 
-![status](https://img.shields.io/badge/Status-Active-success)
-![java](https://img.shields.io/badge/Java-17-blue)
-![spring](https://img.shields.io/badge/Spring%20Boot-3.2.4-6DB33F)
-![database](https://img.shields.io/badge/Database-MySQL-4479A1)
+GET /users
+GET /users/{id}
+POST /users
+PUT /users
+DELETE /users/{id}
+Company
 
-## ✨ Tech Stack
+GET /companies
+GET /companies/{id}
+POST /companies
+PUT /companies
+DELETE /companies/{id}
+Job
 
-| Layer | Technology |
-|---|---|
-| Language | Java 17 |
-| Framework | Spring Boot 3.2.4 |
-| API | Spring Web (REST) |
-| Security | Spring Security + OAuth2 Resource Server (JWT) |
-| Data | Spring Data JPA |
-| Validation | Spring Validation |
-| Template Engine | Thymeleaf |
-| Database | MySQL + MySQL Connector/J |
-| Utility | Lombok |
-| Filtering/Pagination | SpringFilter JPA |
-| Build Tool | Gradle (Kotlin DSL) |
+GET /jobs
+GET /jobs/{id}
+POST /jobs
+PUT /jobs
+DELETE /jobs/{id}
+Skill
 
-## 🧭 API Overview
+GET /skills
+POST /skills
+PUT /skills
+DELETE /skills/{id}
+Role
 
-Base URL: `/api/v1`
+GET /roles
+GET /roles/{id}
+POST /roles
+PUT /roles
+DELETE /roles/{id}
+Permission
 
-### Public endpoint
+GET /permissions
+POST /permissions
+PUT /permissions
+DELETE /permissions/{id}
+Resume
 
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| GET | `/` | Health test endpoint (`Hello World`) | Public |
+GET /resumes
+GET /resumes/{id}
+POST /resumes
+PUT /resumes
+DELETE /resumes/{id}
+POST /resumes/by-user
+File
 
-### Auth APIs
+POST /files (upload)
+GET /files (download/view)
+Public test
 
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| POST | `/auth/login` | Login and receive token/cookie | Public |
-| GET | `/auth/account` | Get current account info | JWT |
-| GET | `/auth/refresh` | Refresh access token | Public |
-| POST | `/auth/logout` | Logout and clear refresh cookie | JWT |
-| POST | `/auth/register` | Register a new user | Public |
-| POST | `/auth/change-password` | Change current user password | JWT |
+GET /
+Ghi chu security:
 
-### User APIs
+Public theo config: /, /api/v1/auth/login, /api/v1/auth/refresh, /api/v1/auth/register, GET /api/v1/companies/, GET /api/v1/jobs/, GET /api/v1/skills/**
+Cac API con lai can token JWT.
+3) Mau application.properties de chay du an
+Luu y: file src/main/resources/application.properties dang bi ignore tren Git. Hay tao file local theo mau duoi day:
 
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| GET | `/users` | Get users with pagination/filter | JWT |
-| GET | `/users/{id}` | Get user by id | JWT |
-| POST | `/users` | Create user | JWT |
-| PUT | `/users` | Update user | JWT |
-| DELETE | `/users/{id}` | Delete user | JWT |
-
-### Company APIs
-
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| GET | `/companies` | Get companies with pagination/filter | Public |
-| GET | `/companies/{id}` | Get company by id | Public |
-| POST | `/companies` | Create company | JWT |
-| PUT | `/companies` | Update company | JWT |
-| DELETE | `/companies/{id}` | Delete company | JWT |
-
-### Job APIs
-
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| GET | `/jobs` | Get jobs with pagination/filter | Public |
-| GET | `/jobs/{id}` | Get job by id | Public |
-| POST | `/jobs` | Create job | JWT |
-| PUT | `/jobs` | Update job | JWT |
-| DELETE | `/jobs/{id}` | Delete job | JWT |
-
-### Skill APIs
-
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| GET | `/skills` | Get skills with pagination/filter | Public |
-| POST | `/skills` | Create skill | JWT |
-| PUT | `/skills` | Update skill | JWT |
-| DELETE | `/skills/{id}` | Delete skill | JWT |
-
-### Role APIs
-
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| GET | `/roles` | Get roles with pagination/filter | JWT |
-| GET | `/roles/{id}` | Get role by id | JWT |
-| POST | `/roles` | Create role | JWT |
-| PUT | `/roles` | Update role | JWT |
-| DELETE | `/roles/{id}` | Delete role | JWT |
-
-### Permission APIs
-
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| GET | `/permissions` | Get permissions with pagination/filter | JWT |
-| POST | `/permissions` | Create permission | JWT |
-| PUT | `/permissions` | Update permission | JWT |
-| DELETE | `/permissions/{id}` | Delete permission | JWT |
-
-### Resume APIs
-
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| GET | `/resumes` | Get resumes with pagination/filter | JWT |
-| GET | `/resumes/{id}` | Get resume by id | JWT |
-| POST | `/resumes` | Create resume | JWT |
-| PUT | `/resumes` | Update resume | JWT |
-| DELETE | `/resumes/{id}` | Delete resume | JWT |
-| POST | `/resumes/by-user` | Get resumes by current user | JWT |
-
-### File APIs
-
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| POST | `/files` | Upload file | JWT |
-| GET | `/files` | Download/view file | JWT |
-
-Security note:
-- Public by configuration: `/`, `/api/v1/auth/login`, `/api/v1/auth/refresh`, `/api/v1/auth/register`, `GET /api/v1/companies/**`, `GET /api/v1/jobs/**`, `GET /api/v1/skills/**`.
-- All remaining endpoints require JWT.
-
-## ⚙️ Sample application.properties
-
-`src/main/resources/application.properties` is ignored in Git.
-Create your local file with this template:
-
-```properties
 spring.application.name=Zob
 
 spring.datasource.url=jdbc:mysql://localhost:3306/zob
@@ -155,25 +107,13 @@ spring.servlet.multipart.max-request-size=50MB
 zob.upload-file.base-uri=file:///C:/path/to/upload/
 
 spring.data.web.pageable.one-indexed-parameters=true
-```
-
-## 🏃 Quick Start
-
-1. Create database:
-
-```sql
+4) Cach chay nhanh
+Tao database MySQL:
 CREATE DATABASE zob CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
+Tao file src/main/resources/application.properties theo mau o tren.
 
-2. Create `src/main/resources/application.properties` from the sample above.
+Chay du an:
 
-3. Run the app:
-
-```powershell
 .\gradlew.bat bootRun
-```
-
-4. Verify:
-- `GET http://localhost:8080/` -> `Hello World`
-
-Happy coding 🎯✨
+Kiem tra:
+GET http://localhost:8080/ -> Hello World
