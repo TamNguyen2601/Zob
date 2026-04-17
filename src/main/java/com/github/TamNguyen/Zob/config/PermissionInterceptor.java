@@ -28,6 +28,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private static final String SKILL_DETAIL_PATH = "/api/v1/skills/{id}";
     private static final String FILE_PATH = "/api/v1/files";
     private static final String RESUME_PATH = "/api/v1/resumes";
+    private static final String RESUME_DETAIL_PATH = "/api/v1/resumes/{id}";
     private static final String RESUME_BY_USER_PATH = "/api/v1/resumes/by-user";
     private static final String USER_SELF_PROFILE_PATH = "/api/v1/users/me";
 
@@ -112,7 +113,8 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
     private boolean isResumeRequestAllowedForAuthenticatedUser(String path, String httpMethod) {
         return (RESUME_PATH.equals(path) && "POST".equalsIgnoreCase(httpMethod))
-                || (RESUME_BY_USER_PATH.equals(path) && "POST".equalsIgnoreCase(httpMethod));
+                || (RESUME_BY_USER_PATH.equals(path) && "POST".equalsIgnoreCase(httpMethod))
+                || (RESUME_DETAIL_PATH.equals(path) && "DELETE".equalsIgnoreCase(httpMethod));
     }
 
     private boolean isSelfProfileUpdateAllowedForAuthenticatedUser(String path, String httpMethod) {

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.github.TamNguyen.Zob.domain.Company;
 import com.github.TamNguyen.Zob.domain.Job;
+import com.github.TamNguyen.Zob.domain.Permission;
 import com.github.TamNguyen.Zob.domain.Resume;
 import com.github.TamNguyen.Zob.domain.User;
 import com.github.TamNguyen.Zob.domain.response.ResultPaginationDTO;
@@ -26,7 +27,9 @@ import com.github.TamNguyen.Zob.service.ResumeService;
 import com.github.TamNguyen.Zob.service.user.UserQueryService;
 import com.github.TamNguyen.Zob.util.SecurityUtil;
 import com.github.TamNguyen.Zob.util.annotation.ApiMessage;
+import com.github.TamNguyen.Zob.util.constant.PermissionCode;
 import com.github.TamNguyen.Zob.util.error.NotFoundException;
+import com.github.TamNguyen.Zob.util.error.PermissionException;
 import com.github.TamNguyen.Zob.util.error.ValidationErrorException;
 import com.turkraft.springfilter.boot.Filter;
 import com.turkraft.springfilter.builder.FilterBuilder;
@@ -92,8 +95,47 @@ public class ResumeController {
             throw new NotFoundException("Resume với id = " + id + " không tồn tại");
         }
 
+        Resume resumeInDb = reqResumeOptional.get();
+        this.validateResumeDeletePermission(resumeInDb);
+
         this.resumeService.delete(id);
         return ResponseEntity.ok().body(null);
+    }
+
+    private void validateResumeDeletePermission(Resume resumeInDb) {
+        String currentUserEmail = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new PermissionException("Bạn không có quyền xóa CV này"));
+
+        User currentUser = this.userQueryService.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new PermissionException("Bạn không có quyền xóa CV này"));
+
+        if (hasDeleteResumePermission(currentUser)) {
+            return;
+        }
+
+        if (isOwnerOfResume(currentUserEmail, resumeInDb)) {
+            return;
+        }
+
+        throw new PermissionException("Bạn chỉ được xóa CV do chính mình tạo");
+    }
+
+    private boolean hasDeleteResumePermission(User user) {
+        if (user.getRole() == null || user.getRole().getPermissions() == null) {
+            return false;
+        }
+
+        return user.getRole().getPermissions().stream()
+                .map(Permission::getName)
+                .anyMatch(PermissionCode.DELETE_RESUME::equals);
+    }
+
+    private boolean isOwnerOfResume(String currentUserEmail, Resume resumeInDb) {
+        if (resumeInDb.getUser() != null && resumeInDb.getUser().getEmail() != null) {
+            return currentUserEmail.equalsIgnoreCase(resumeInDb.getUser().getEmail());
+        }
+
+        return resumeInDb.getEmail() != null && currentUserEmail.equalsIgnoreCase(resumeInDb.getEmail());
     }
 
     @GetMapping("/resumes/{id}")

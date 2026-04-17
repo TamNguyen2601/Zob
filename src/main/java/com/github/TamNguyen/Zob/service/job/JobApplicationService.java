@@ -16,16 +16,13 @@ import com.github.TamNguyen.Zob.domain.response.job.ResUpdateJobDTO;
 import com.github.TamNguyen.Zob.repository.JobRepository;
 import com.github.TamNguyen.Zob.service.user.UserQueryService;
 import com.github.TamNguyen.Zob.util.SecurityUtil;
+import com.github.TamNguyen.Zob.util.constant.PermissionCode;
 import com.github.TamNguyen.Zob.util.error.IdInvalidException;
 import com.github.TamNguyen.Zob.util.error.PermissionException;
 import com.github.TamNguyen.Zob.util.error.ValidationErrorException;
 
 @Service
 public class JobApplicationService {
-
-    private static final String HR_SCOPED_JOB_CREATE_PERMISSION_NAME = "Create a job for own company";
-    private static final String HR_SCOPED_JOB_UPDATE_PERMISSION_NAME = "Update a job for own company";
-    private static final String HR_SCOPED_JOB_DELETE_PERMISSION_NAME = "Delete a job for own company";
 
     private final JobRepository jobRepository;
     private final JobValidationService jobValidationService;
@@ -79,7 +76,7 @@ public class JobApplicationService {
     public ResUpdateJobDTO update(Job inputJob, Job jobInDb) {
         this.enforceScopedOwnCompanyPermission(
                 jobInDb,
-                HR_SCOPED_JOB_UPDATE_PERMISSION_NAME,
+                PermissionCode.UPDATE_JOB_OWN_COMPANY,
                 "cập nhật job",
                 "Bạn chỉ được cập nhật job của công ty mình");
 
@@ -109,7 +106,7 @@ public class JobApplicationService {
     public void delete(Job jobInDb) {
         this.enforceScopedOwnCompanyPermission(
                 jobInDb,
-                HR_SCOPED_JOB_DELETE_PERMISSION_NAME,
+                PermissionCode.DELETE_JOB_OWN_COMPANY,
                 "xóa job",
                 "Bạn chỉ được xóa job của công ty mình");
         this.jobRepository.deleteById(jobInDb.getId());
@@ -139,7 +136,7 @@ public class JobApplicationService {
     private void enforceCreateOwnCompanyPermission(Job job) {
         this.enforceScopedOwnCompanyPermission(
                 job,
-                HR_SCOPED_JOB_CREATE_PERMISSION_NAME,
+                PermissionCode.CREATE_JOB_OWN_COMPANY,
                 "tạo job",
                 "Bạn chỉ được tạo job cho công ty của mình");
     }
