@@ -60,7 +60,7 @@ public class JobController {
         if (!currentJob.isPresent()) {
             throw new NotFoundException("Job not found");
         }
-        this.jobApplicationService.delete(id);
+        this.jobApplicationService.delete(currentJob.get());
         return ResponseEntity.ok().body(null);
     }
 

@@ -17,6 +17,16 @@ import com.github.TamNguyen.Zob.util.constant.GenderEnum;
 @Service
 public class DatabaseInitializer implements CommandLineRunner {
 
+        private static final String HR_JOB_CREATE_OWN_COMPANY_PERMISSION_NAME = "Create a job for own company";
+        private static final String HR_JOB_UPDATE_OWN_COMPANY_PERMISSION_NAME = "Update a job for own company";
+        private static final String HR_JOB_DELETE_OWN_COMPANY_PERMISSION_NAME = "Delete a job for own company";
+        private static final String JOBS_SCOPE_MODULE = "JOBS_SCOPE";
+        private static final String JOBS_DETAIL_PATH = "/api/v1/jobs/{id}";
+        private static final String JOBS_PATH = "/api/v1/jobs";
+        private static final String HTTP_DELETE = "DELETE";
+        private static final String HTTP_POST = "POST";
+        private static final String HTTP_PUT = "PUT";
+
         private final PermissionRepository permissionRepository;
         private final RoleRepository roleRepository;
         private final UserRepository userRepository;
@@ -54,9 +64,15 @@ public class DatabaseInitializer implements CommandLineRunner {
                                         "GET", "COMPANIES"));
 
                         arr.add(new Permission("Create a job", "/api/v1/jobs", "POST", "JOBS"));
+                        arr.add(new Permission(HR_JOB_CREATE_OWN_COMPANY_PERMISSION_NAME,
+                                        JOBS_PATH, HTTP_POST, JOBS_SCOPE_MODULE));
                         arr.add(new Permission("Update a job", "/api/v1/jobs", "PUT", "JOBS"));
+                        arr.add(new Permission(HR_JOB_UPDATE_OWN_COMPANY_PERMISSION_NAME,
+                                        JOBS_PATH, HTTP_PUT, JOBS_SCOPE_MODULE));
                         arr.add(new Permission("Delete a job", "/api/v1/jobs/{id}", "DELETE",
                                         "JOBS"));
+                        arr.add(new Permission(HR_JOB_DELETE_OWN_COMPANY_PERMISSION_NAME,
+                                        JOBS_DETAIL_PATH, HTTP_DELETE, JOBS_SCOPE_MODULE));
                         arr.add(new Permission("Get a job by id", "/api/v1/jobs/{id}", "GET",
                                         "JOBS"));
                         arr.add(new Permission("Get jobs with pagination", "/api/v1/jobs", "GET",
@@ -119,6 +135,8 @@ public class DatabaseInitializer implements CommandLineRunner {
                         this.permissionRepository.saveAll(arr);
                 }
 
+                ensureHrScopedJobPermissions();
+
                 if (countRoles == 0) {
                         List<Permission> allPermissions = this.permissionRepository.findAll();
 
@@ -152,6 +170,20 @@ public class DatabaseInitializer implements CommandLineRunner {
                         System.out.println(">>> SKIP INIT DATABASE ~ ALREADY HAVE DATA...");
                 } else
                         System.out.println(">>> END INIT DATABASE");
+        }
+
+        private void ensureHrScopedJobPermissions() {
+                ensureScopedJobPermission(HR_JOB_CREATE_OWN_COMPANY_PERMISSION_NAME, JOBS_PATH, HTTP_POST);
+                ensureScopedJobPermission(HR_JOB_UPDATE_OWN_COMPANY_PERMISSION_NAME, JOBS_PATH, HTTP_PUT);
+                ensureScopedJobPermission(HR_JOB_DELETE_OWN_COMPANY_PERMISSION_NAME, JOBS_DETAIL_PATH, HTTP_DELETE);
+        }
+
+        private void ensureScopedJobPermission(String name, String apiPath, String method) {
+                boolean exists = this.permissionRepository.existsByModuleAndApiPathAndMethod(
+                                JOBS_SCOPE_MODULE, apiPath, method);
+                if (!exists) {
+                        this.permissionRepository.save(new Permission(name, apiPath, method, JOBS_SCOPE_MODULE));
+                }
         }
 
 }
