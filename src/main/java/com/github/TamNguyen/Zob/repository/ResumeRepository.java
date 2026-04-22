@@ -13,4 +13,7 @@ public interface ResumeRepository extends JpaRepository<Resume, Long>,
 
     java.util.List<Resume> findByUser(User user);
 
+    @org.springframework.data.jpa.repository.Query("SELECT r.status, COUNT(r.id) FROM Resume r WHERE r.job.id = :jobId GROUP BY r.status")
+    java.util.List<Object[]> countResumesByJobIdAndStatus(@org.springframework.data.repository.query.Param("jobId") long jobId);
+
 }

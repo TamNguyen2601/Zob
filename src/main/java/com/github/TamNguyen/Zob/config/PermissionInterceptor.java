@@ -31,6 +31,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private static final String RESUME_DETAIL_PATH = "/api/v1/resumes/{id}";
     private static final String RESUME_BY_USER_PATH = "/api/v1/resumes/by-user";
     private static final String USER_SELF_PROFILE_PATH = "/api/v1/users/me";
+    private static final String PREMIUM_PURCHASE_PATH = "/api/v1/premium/purchase";
+    private static final String PREMIUM_ME_PATH = "/api/v1/premium/me";
+    private static final String MOMO_IPN_PATH = "/api/v1/payments/momo/ipn";
 
     private final UserQueryService userQueryService;
 
@@ -52,6 +55,10 @@ public class PermissionInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        if (isPublicPaymentCallback(path, httpMethod)) {
+            return true;
+        }
+
         if (isFileRequest(path)) {
             return true;
         }
@@ -69,6 +76,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
                 return true;
             }
             if (isSelfProfileUpdateAllowedForAuthenticatedUser(path, httpMethod)) {
+                return true;
+            }
+            if (isPremiumRequestAllowedForAuthenticatedUser(path, httpMethod)) {
                 return true;
             }
 
@@ -119,5 +129,15 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
     private boolean isSelfProfileUpdateAllowedForAuthenticatedUser(String path, String httpMethod) {
         return USER_SELF_PROFILE_PATH.equals(path) && "PUT".equalsIgnoreCase(httpMethod);
+    }
+
+    private boolean isPremiumRequestAllowedForAuthenticatedUser(String path, String httpMethod) {
+        return (PREMIUM_PURCHASE_PATH.equals(path) && "POST".equalsIgnoreCase(httpMethod))
+                || (PREMIUM_ME_PATH.equals(path) && "GET".equalsIgnoreCase(httpMethod))
+                || ("/api/v1/jobs/{id}/resumes/stats".equals(path) && "GET".equalsIgnoreCase(httpMethod));
+    }
+
+    private boolean isPublicPaymentCallback(String path, String httpMethod) {
+        return MOMO_IPN_PATH.equals(path) && "POST".equalsIgnoreCase(httpMethod);
     }
 }

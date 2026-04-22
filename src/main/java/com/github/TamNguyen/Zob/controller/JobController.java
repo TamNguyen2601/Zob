@@ -29,9 +29,12 @@ import jakarta.validation.Valid;
 public class JobController {
 
     private final JobApplicationService jobApplicationService;
+    private final com.github.TamNguyen.Zob.service.ResumeStatsService resumeStatsService;
 
-    public JobController(JobApplicationService jobApplicationService) {
+    public JobController(JobApplicationService jobApplicationService,
+            com.github.TamNguyen.Zob.service.ResumeStatsService resumeStatsService) {
         this.jobApplicationService = jobApplicationService;
+        this.resumeStatsService = resumeStatsService;
     }
 
     @PostMapping("/jobs")
@@ -82,5 +85,11 @@ public class JobController {
             Pageable pageable) {
 
         return ResponseEntity.ok().body(this.jobApplicationService.fetchAll(spec, pageable));
+    }
+
+    @GetMapping("/jobs/{id}/resumes/stats")
+    @ApiMessage("Get resume stats by job id (Premium only)")
+    public ResponseEntity<com.github.TamNguyen.Zob.domain.response.job.ResResumeStatsDTO> getResumeStats(@PathVariable("id") long id) {
+        return ResponseEntity.ok().body(this.resumeStatsService.fetchResumeStatsByJobId(id));
     }
 }
