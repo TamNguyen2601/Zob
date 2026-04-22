@@ -1,5 +1,6 @@
 package com.github.TamNguyen.Zob.repository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,4 +12,6 @@ import com.github.TamNguyen.Zob.domain.User;
 @Repository
 public interface PremiumSubscriptionRepository extends JpaRepository<PremiumSubscription, Long> {
     Optional<PremiumSubscription> findByUser(User user);
+
+    long deleteByEndAtBefore(Instant now);
 }

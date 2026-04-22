@@ -20,7 +20,7 @@ public class PremiumPlanCatalog {
     private final Map<PremiumPlanCode, Plan> plans = new EnumMap<>(PremiumPlanCode.class);
 
     public PremiumPlanCatalog() {
-        plans.put(PremiumPlanCode.DEMO_1_MIN, new Plan(3_000L));
+        plans.put(PremiumPlanCode.DEMO_1_MIN, new Plan(10_000L));
         plans.put(PremiumPlanCode.MONTH_1, new Plan(50_000L));
         plans.put(PremiumPlanCode.MONTH_3, new Plan(100_000L));
         plans.put(PremiumPlanCode.YEAR_1, new Plan(250_000L));
