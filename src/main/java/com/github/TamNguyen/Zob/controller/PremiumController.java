@@ -20,6 +20,7 @@ import com.github.TamNguyen.Zob.service.user.UserQueryService;
 import com.github.TamNguyen.Zob.util.SecurityUtil;
 import com.github.TamNguyen.Zob.util.annotation.ApiMessage;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RequestMapping("/api/v1")
@@ -41,9 +42,16 @@ public class PremiumController {
 
     @PostMapping("/premium/purchase")
     @ApiMessage("Create premium purchase transaction")
-    public ResponseEntity<ResPremiumPurchaseDTO> purchase(@Valid @RequestBody ReqPremiumPurchaseDTO body) {
+    public ResponseEntity<ResPremiumPurchaseDTO> purchase(
+            HttpServletRequest request,
+            @Valid @RequestBody ReqPremiumPurchaseDTO body) {
         User currentUser = getCurrentUserOrThrow();
-        ResPremiumPurchaseDTO res = premiumPurchaseService.purchase(currentUser, body.getPlanCode());
+        String clientIp = "";
+        if (request != null) {
+            String xff = request.getHeader("X-Forwarded-For");
+            clientIp = (xff != null && !xff.isBlank()) ? xff : request.getRemoteAddr();
+        }
+        ResPremiumPurchaseDTO res = premiumPurchaseService.purchase(currentUser, body.getPlanCode(), clientIp);
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 

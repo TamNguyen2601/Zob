@@ -16,14 +16,13 @@ public class ResPremiumPurchaseDTO {
     private String providerOrderId;
 
     /**
-     * payUrl: link web thanh toán MoMo — FE dùng để tạo QR image bằng thư viện qrcode.
-     * Bất kỳ QR scanner nào cũng đọc được, mở trang web thanh toán MoMo.
+     * payUrl: link web thanh toán (VNPay) — FE dùng để redirect hoặc tạo QR image
+     * bằng thư viện qrcode.
      */
     private String payUrl;
 
     /**
-     * momoDeeplink: deep link momo://... — chỉ app MoMo mới hiểu.
-     * FE có thể dùng làm nút "Mở app MoMo" trên mobile.
+     * Trường legacy để tương thích API cũ. Với VNPay thường không dùng.
      */
     private String momoDeeplink;
 

@@ -28,21 +28,22 @@ public class PaymentTransactionService {
     }
 
     @Transactional
-    public PaymentTransaction createPendingMomoTransaction(User user, PremiumPlanCode planCode) {
+    public PaymentTransaction createPendingVnpayTransaction(User user, PremiumPlanCode planCode) {
         PaymentTransaction tx = new PaymentTransaction();
         tx.setUser(user);
-        tx.setProvider(PaymentProviderEnum.MOMO);
+        tx.setProvider(PaymentProviderEnum.VNPAY);
         tx.setPlanCode(planCode);
         tx.setAmount(premiumPlanCatalog.getAmountVnd(planCode));
-        tx.setProviderOrderId(generateProviderOrderId(user));
+        tx.setProviderOrderId(generateProviderOrderId(PaymentProviderEnum.VNPAY, user));
         tx.setStatus(PaymentTransactionStatusEnum.PENDING);
         tx.setCreatedAt(Instant.now());
         return paymentTransactionRepository.save(tx);
     }
 
-    private String generateProviderOrderId(User user) {
+    private String generateProviderOrderId(PaymentProviderEnum provider, User user) {
         String random = UUID.randomUUID().toString().replace("-", "");
         long userId = user != null && user.getId() != null ? user.getId() : 0L;
-        return "MOMO-" + userId + "-" + System.currentTimeMillis() + "-" + random;
+        String prefix = provider != null ? provider.name() : "PAY";
+        return prefix + "-" + userId + "-" + System.currentTimeMillis() + "-" + random;
     }
 }

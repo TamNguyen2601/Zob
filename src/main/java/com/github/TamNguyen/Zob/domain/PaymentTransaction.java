@@ -37,9 +37,11 @@ public class PaymentTransaction {
     private User user;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private PaymentProviderEnum provider;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private PremiumPlanCode planCode;
 
     private long amount;
@@ -47,9 +49,11 @@ public class PaymentTransaction {
     @Column(name = "provider_order_id", nullable = false, unique = true)
     private String providerOrderId;
 
+    @Column(columnDefinition = "TEXT")
     private String qrCodeUrl;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private PaymentTransactionStatusEnum status;
 
     private Instant createdAt;

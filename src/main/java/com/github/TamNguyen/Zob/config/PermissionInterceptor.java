@@ -33,7 +33,8 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private static final String USER_SELF_PROFILE_PATH = "/api/v1/users/me";
     private static final String PREMIUM_PURCHASE_PATH = "/api/v1/premium/purchase";
     private static final String PREMIUM_ME_PATH = "/api/v1/premium/me";
-    private static final String MOMO_IPN_PATH = "/api/v1/payments/momo/ipn";
+    private static final String VNPAY_IPN_PATH = "/api/v1/payments/vnpay/ipn";
+    private static final String VNPAY_RETURN_PATH = "/api/v1/payments/vnpay/return";
 
     private final UserQueryService userQueryService;
 
@@ -138,6 +139,10 @@ public class PermissionInterceptor implements HandlerInterceptor {
     }
 
     private boolean isPublicPaymentCallback(String path, String httpMethod) {
-        return MOMO_IPN_PATH.equals(path) && "POST".equalsIgnoreCase(httpMethod);
+        if (!"GET".equalsIgnoreCase(httpMethod)) {
+            return false;
+        }
+
+        return VNPAY_IPN_PATH.equals(path) || VNPAY_RETURN_PATH.equals(path);
     }
 }
