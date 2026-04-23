@@ -133,6 +133,11 @@ public class JobApplicationService {
         return rs;
     }
 
+    public ResultPaginationDTO fetchAllByCompanyId(long companyId, Pageable pageable) {
+        Specification<Job> companySpec = (root, query, cb) -> cb.equal(root.get("company").get("id"), companyId);
+        return this.fetchAll(companySpec, pageable);
+    }
+
     private void enforceCreateOwnCompanyPermission(Job job) {
         this.enforceScopedOwnCompanyPermission(
                 job,

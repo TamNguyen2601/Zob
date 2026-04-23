@@ -18,6 +18,7 @@ import com.github.TamNguyen.Zob.domain.Job;
 import com.github.TamNguyen.Zob.domain.response.ResultPaginationDTO;
 import com.github.TamNguyen.Zob.domain.response.job.ResCreateJobDTO;
 import com.github.TamNguyen.Zob.domain.response.job.ResUpdateJobDTO;
+import com.github.TamNguyen.Zob.service.CompanyService;
 import com.github.TamNguyen.Zob.service.job.JobApplicationService;
 import com.github.TamNguyen.Zob.util.annotation.ApiMessage;
 import com.github.TamNguyen.Zob.util.error.NotFoundException;
@@ -30,11 +31,14 @@ public class JobController {
 
     private final JobApplicationService jobApplicationService;
     private final com.github.TamNguyen.Zob.service.ResumeStatsService resumeStatsService;
+    private final CompanyService companyService;
 
     public JobController(JobApplicationService jobApplicationService,
-            com.github.TamNguyen.Zob.service.ResumeStatsService resumeStatsService) {
+            com.github.TamNguyen.Zob.service.ResumeStatsService resumeStatsService,
+            CompanyService companyService) {
         this.jobApplicationService = jobApplicationService;
         this.resumeStatsService = resumeStatsService;
+        this.companyService = companyService;
     }
 
     @PostMapping("/jobs")
@@ -87,9 +91,20 @@ public class JobController {
         return ResponseEntity.ok().body(this.jobApplicationService.fetchAll(spec, pageable));
     }
 
+    @GetMapping("/companies/{companyId}/jobs")
+    @ApiMessage("Get jobs by company id with pagination")
+    public ResponseEntity<ResultPaginationDTO> getJobsByCompanyId(
+            @PathVariable("companyId") long companyId,
+            Pageable pageable) {
+
+        this.companyService.findByIdOrThrow(companyId);
+        return ResponseEntity.ok().body(this.jobApplicationService.fetchAllByCompanyId(companyId, pageable));
+    }
+
     @GetMapping("/jobs/{id}/resumes/stats")
     @ApiMessage("Get resume stats by job id (Premium only)")
-    public ResponseEntity<com.github.TamNguyen.Zob.domain.response.job.ResResumeStatsDTO> getResumeStats(@PathVariable("id") long id) {
+    public ResponseEntity<com.github.TamNguyen.Zob.domain.response.job.ResResumeStatsDTO> getResumeStats(
+            @PathVariable("id") long id) {
         return ResponseEntity.ok().body(this.resumeStatsService.fetchResumeStatsByJobId(id));
     }
 }

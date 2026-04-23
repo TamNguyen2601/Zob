@@ -22,6 +22,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
     private static final String COMPANY_PATH = "/api/v1/companies";
     private static final String COMPANY_DETAIL_PATH = "/api/v1/companies/{id}";
+    private static final String COMPANY_JOBS_PATH = "/api/v1/companies/{companyId}/jobs";
     private static final String JOB_PATH = "/api/v1/jobs";
     private static final String JOB_DETAIL_PATH = "/api/v1/jobs/{id}";
     private static final String SKILL_PATH = "/api/v1/skills";
@@ -112,6 +113,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
         return COMPANY_PATH.equals(path)
                 || COMPANY_DETAIL_PATH.equals(path)
+                || COMPANY_JOBS_PATH.equals(path)
                 || JOB_PATH.equals(path)
                 || JOB_DETAIL_PATH.equals(path)
                 || SKILL_PATH.equals(path)
