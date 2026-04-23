@@ -57,7 +57,7 @@ public class ResumeStatsService {
         // 3. Check Premium access
         ResPremiumMeDTO premiumStatus = this.premiumQueryService.getPremiumStatus(currentUser, Instant.now());
         if (!premiumStatus.isPremium()) {
-            throw new PermissionException("Tính năng này yêu cầu Premium");
+            throw new PermissionException("Mua Prenium để xem thống kê hồ sơ nhé bạn yêu:3");
         }
 
         // 4. Fetch stats
