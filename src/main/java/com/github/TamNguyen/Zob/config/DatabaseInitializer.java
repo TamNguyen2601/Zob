@@ -139,12 +139,17 @@ public class DatabaseInitializer implements CommandLineRunner {
 
                 if (countRoles == 0) {
                         List<Permission> allPermissions = this.permissionRepository.findAll();
+                        // Không gán các quyền JOBS_SCOPE cho admin vì chúng chỉ dành cho HR
+                        // (giới hạn thao tác trong phạm vi công ty). Admin đã có quyền JOBS toàn quyền.
+                        List<Permission> adminPermissions = allPermissions.stream()
+                                        .filter(p -> !JOBS_SCOPE_MODULE.equals(p.getModule()))
+                                        .toList();
 
                         Role adminRole = new Role();
                         adminRole.setName("admin");
                         adminRole.setDescription("full permissions");
                         adminRole.setActive(true);
-                        adminRole.setPermissions(allPermissions);
+                        adminRole.setPermissions(adminPermissions);
                         this.roleRepository.save(adminRole);
                 }
 
