@@ -122,4 +122,15 @@ public class GlobalException {
         res.setMessage(ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(res);
     }
+
+    @ExceptionHandler(value = {
+            GeminiException.class,
+    })
+    public ResponseEntity<RestResponse<Object>> handleGeminiException(GeminiException ex) {
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatusCode(ex.getHttpStatus().value());
+        res.setError("Gemini AI Error");
+        res.setMessage(ex.getMessage());
+        return ResponseEntity.status(ex.getHttpStatus()).body(res);
+    }
 }

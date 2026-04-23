@@ -36,6 +36,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private static final String PREMIUM_ME_PATH = "/api/v1/premium/me";
     private static final String VNPAY_IPN_PATH = "/api/v1/payments/vnpay/ipn";
     private static final String VNPAY_RETURN_PATH = "/api/v1/payments/vnpay/return";
+    private static final String CHAT_PATH = "/api/v1/chat";
 
     private final UserQueryService userQueryService;
 
@@ -81,6 +82,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
                 return true;
             }
             if (isPremiumRequestAllowedForAuthenticatedUser(path, httpMethod)) {
+                return true;
+            }
+            if (isChatRequestAllowedForAuthenticatedUser(path, httpMethod)) {
                 return true;
             }
 
@@ -138,6 +142,14 @@ public class PermissionInterceptor implements HandlerInterceptor {
         return (PREMIUM_PURCHASE_PATH.equals(path) && "POST".equalsIgnoreCase(httpMethod))
                 || (PREMIUM_ME_PATH.equals(path) && "GET".equalsIgnoreCase(httpMethod))
                 || ("/api/v1/jobs/{id}/resumes/stats".equals(path) && "GET".equalsIgnoreCase(httpMethod));
+    }
+
+    /**
+     * Chatbox AI: cho phép tất cả user đã đăng nhập sử dụng,
+     * không phụ thuộc vào permission role trong database.
+     */
+    private boolean isChatRequestAllowedForAuthenticatedUser(String path, String httpMethod) {
+        return CHAT_PATH.equals(path) && "POST".equalsIgnoreCase(httpMethod);
     }
 
     private boolean isPublicPaymentCallback(String path, String httpMethod) {
